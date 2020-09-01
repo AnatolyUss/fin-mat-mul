@@ -1,38 +1,43 @@
 'use strict';
 
-const { EOL } = require('os');
+const path = require('path');
 
 /**
- * Returns a generator, that produces requested matrix in the "csv" format.
- * @param rowsRequired
- * @param columnsRequired
- * @param highWaterMark
- * @returns {Generator<string, void, *>}
+ * Handles uncaught exceptions and promise rejections.
  */
-module.exports.getMatrixGenerator = function* (rowsRequired, columnsRequired, highWaterMark) {
-  const chunkSize = columnsRequired <= highWaterMark ? columnsRequired : highWaterMark;
-
-  for (let rows = 0; rows < rowsRequired; ++rows) {
-    for (let columns = 0; columns < columnsRequired; columns += chunkSize) {
-      let data = '';
-
-      for (let columnsInChunk = 0; columnsInChunk < chunkSize; ++columnsInChunk) {
-        const random = Math.random() * 10;
-        data += columnsInChunk % 3 === 0 ? `${ random.toFixed(2) },` : `${ Math.floor(random) },`;
-      }
-
-      yield data;
-    }
-
-    yield EOL;
-  }
+module.exports.handleUncaughtErrors = () => {
+  process
+    .on('unhandledRejection', (reason, promise) => {
+      console.error(reason, 'Unhandled Promise rejection', promise);
+    })
+    .on('uncaughtException', error => {
+      console.error(error, 'Uncaught Exception thrown');
+      process.exit(1);
+    });
 };
+
+/**
+ * Handles the "500" error.
+ * This method is intentionally oversimplified.
+ * @param response
+ * @param error
+ */
+module.exports.handleError_500 = (response, error) => {
+  console.log(error);
+  response.status(500).send({ success: false });
+};
+
+/**
+ * Returns a path to the "uploads" directory.
+ * @returns {string}
+ */
+module.exports.getUploadsDirectory = () => path.join(__dirname, '..', '..', 'uploads');
 
 /**
  * Returns a number of rows and a number of columns of given matrix.
  * @param matrixName
  */
-const getMatrixDimensions = matrixName => {
+module.exports.getMatrixDimensions = matrixName => {
   const [ _, rows, columns ] = matrixName.split('-');
   const numberOfRows = rows.split('_')[1];
   const numberOfColumns = columns.split('_')[1];
@@ -41,11 +46,10 @@ const getMatrixDimensions = matrixName => {
 
 /**
  * Checks if given matrices are eligible for multiplication.
- * @param firstMatrixName
- * @param secondMatrixName
+ * @param numberOfColumnsFirstMatrix
+ * @param numberOfRowsSecondMatrix
+ * @returns {boolean}
  */
-module.exports.matricesAreEligibleForMultiplication = (firstMatrixName, secondMatrixName) => {
-  const [ _, numberOfColumnsFirstMatrix ] = getMatrixDimensions(firstMatrixName);
-  const [ numberOfRowsSecondMatrix ] = getMatrixDimensions(secondMatrixName);
+module.exports.matricesAreEligibleForMultiplication = (numberOfColumnsFirstMatrix, numberOfRowsSecondMatrix) => {
   return numberOfColumnsFirstMatrix === numberOfRowsSecondMatrix;
 };
