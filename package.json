@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/src/bin/server.js"
+    "start": "node dist/bin/server.js"
   },
   "author": "Anatoly Khaytovich <anatolyuss@gmail.com>",
   "license": "MIT",

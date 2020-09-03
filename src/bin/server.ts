@@ -63,7 +63,7 @@ app.get('/generate', (request: express.Request, response: express.Response) => {
  * Successfully uploaded ~7 GB file without any memory spike.
  *
  * Sample:
- * POST: http://localhost:3000/upload
+ * POST http://localhost:3000/upload
  * Remarks:
  * 1. You need to send one or more files as a part of form-data.
  * 2. You can use Postman for the sake of simplicity.
@@ -103,7 +103,7 @@ app.post('/upload', async (request: express.Request, response: express.Response)
  * Multiply two matrices from previously uploaded files.
  *
  * Sample:
- * GET localhost:3000/multiply?matrix-1=matrix-rows_1200-columns_1000-1599090639875.csv&matrix-2=matrix-rows_1000-columns_2000-1599090657968.csv
+ * GET http://localhost:3000/multiply?matrix-1=matrix-rows_1200-columns_1000-1599090639875.csv&matrix-2=matrix-rows_1000-columns_2000-1599090657968.csv
  */
 app.get('/multiply', (request: express.Request, response: express.Response) => {
   const firstMatrixName: string = <string>request.query['matrix-1'];
