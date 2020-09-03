@@ -64,7 +64,9 @@ app.get('/generate', (request: express.Request, response: express.Response) => {
  *
  * Sample:
  * POST: http://localhost:3000/upload
- * Remark: you need to send one or more files as a part of form-data.
+ * Remarks:
+ * 1. You need to send one or more files as a part of form-data.
+ * 2. You can use Postman for the sake of simplicity.
  */
 app.post('/upload', async (request: express.Request, response: express.Response) => {
   const busboyOptions = {
@@ -108,8 +110,8 @@ app.get('/multiply', (request: express.Request, response: express.Response) => {
   const secondMatrixName: string = <string>request.query['matrix-2'];
 
   try {
-    const [ numberOfRowsFirstMatrix, numberOfColumnsFirstMatrix ] = getMatrixDimensions(firstMatrixName);
-    const [ numberOfRowsSecondMatrix, numberOfColumnsSecondMatrix ] = getMatrixDimensions(secondMatrixName);
+    const [ , numberOfColumnsFirstMatrix ] = getMatrixDimensions(firstMatrixName);
+    const [ numberOfRowsSecondMatrix ] = getMatrixDimensions(secondMatrixName);
 
     if (!matricesAreEligibleForMultiplication(numberOfColumnsFirstMatrix, numberOfRowsSecondMatrix)) {
       const responseObject = {

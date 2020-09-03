@@ -64,7 +64,7 @@ export const getUploadsDirectory = (): string => path.join(__dirname, '..', '..'
  * Returns a number of rows and a number of columns of given matrix.
  */
 export const getMatrixDimensions = (matrixName: string): string[] => {
-  const [ _, rows, columns ] = matrixName.split('-');
+  const [ , rows, columns ] = matrixName.split('-');
   const numberOfRows: string = rows.split('_')[1];
   const numberOfColumns: string = columns.split('_')[1];
   return [ numberOfRows, numberOfColumns ];
