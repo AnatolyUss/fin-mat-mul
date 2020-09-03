@@ -1,21 +1,21 @@
 'use strict';
 
 const path = require('path');
-const fs = require('fs-extra');
+const fs = require('fs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const Busboy = require('busboy');
 const connectTimeout = require('connect-timeout');
 const getMultiplicationGenerator = require('../lib/MultiplicationGenerator');
 const getMatrixGenerator = require('../lib/UserDefinedMatrixGenerator');
-const MatrixMetadata = require('../lib/MatrixMetadata');
 const downloadFile = require('../lib/FileDownloadStream');
 const {
   handleError_500,
   matricesAreEligibleForMultiplication,
   getUploadsDirectory,
   getMatrixDimensions,
-  handleUncaughtErrors
+  handleUncaughtErrors,
+  ensureDirectoryExists,
 } = require('../lib/Util');
 
 handleUncaughtErrors();
@@ -46,17 +46,18 @@ app.get('/generate', (request, response) => {
 /**
  * TODO: add description.
  */
-app.post('/upload', (request, response) => {
+app.post('/upload', async (request, response) => {
   const busboyOptions = {
     headers: request.headers,
     highWaterMark: 2 * 1024 * 1024 // Sets 2 MB buffer.
   };
 
-  const busboy = new Busboy(busboyOptions);
-  const uploadPath = getUploadsDirectory(); // Registers the upload path.
-  fs.ensureDir(uploadPath); // Validates the upload path exits.
+  try {
+    const busboy = new Busboy(busboyOptions);
+    const uploadPath = getUploadsDirectory(); // Registers the upload path.
+    await ensureDirectoryExists(uploadPath); // Validates the upload path exits.
 
-  busboy
+    busboy
     .on('file', (fieldName, file, fileName) => {
       console.log(`Upload of '${ fileName }' started.`);
       const fileAddress = path.join(uploadPath, fileName);
@@ -69,11 +70,14 @@ app.post('/upload', (request, response) => {
       response.status(201).send({ success: true });
     });
 
-  request.pipe(busboy);
+    request.pipe(busboy);
+  } catch (error) {
+    handleError_500(response, error);
+  }
 });
 
 /**
- * TODO: add description.
+ * Multiply two matrices from previously uploaded files.
  */
 app.get('/multiply', (request, response) => {
   const firstMatrixName = request.query['matrix-1'];
@@ -96,11 +100,7 @@ app.get('/multiply', (request, response) => {
     const uploadsDirectory = getUploadsDirectory();
     const firstFileAddress = path.join(uploadsDirectory, firstMatrixName);
     const secondFileAddress = path.join(uploadsDirectory, secondMatrixName);
-
-    const multiplicationGenerator = getMultiplicationGenerator(
-      new MatrixMetadata(firstFileAddress, numberOfRowsFirstMatrix, numberOfColumnsFirstMatrix),
-      new MatrixMetadata(secondFileAddress, numberOfRowsSecondMatrix, numberOfColumnsSecondMatrix)
-    );
+    const multiplicationGenerator = getMultiplicationGenerator(firstFileAddress, secondFileAddress);
 
     const resultFileName = `matrices-multiplication-result ${ new Date().getTime() }.csv`;
     const highWaterMark = 1000;

@@ -1,6 +1,41 @@
 'use strict';
 
+const fs = require('fs');
 const path = require('path');
+
+/**
+ * Checks if the file (or directory) under given address exists and is writeable.
+ * @param path
+ * @returns {Promise<boolean>}
+ */
+const fileOrDirectoryExists = async path => {
+  return new Promise(resolve => {
+    fs.access(path, fs.constants.W_OK, error => {
+      const existsAndWriteable = !error;
+      resolve(!!existsAndWriteable); // Cast to boolean.
+    });
+  });
+};
+
+module.exports.fileOrDirectoryExists = fileOrDirectoryExists;
+
+/**
+ * Checks if a directory exists under given path.
+ * If not, a directory will be created.
+ * @param path
+ * @returns {Promise<void | Error>}
+ */
+module.exports.ensureDirectoryExists = async path => {
+  const exists = await fileOrDirectoryExists(path);
+
+  if (exists) {
+    return;
+  }
+
+  return new Promise((resolve, reject) => {
+    fs.mkdir(path, error => error ? reject(error) : resolve());
+  });
+};
 
 /**
  * Handles uncaught exceptions and promise rejections.
